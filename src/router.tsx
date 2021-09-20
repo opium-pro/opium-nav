@@ -57,13 +57,13 @@ export const Router: FC<RouterProps> = ({
   // Change browser path
   useEffect(() => {
     if (!stack[historyName]) {
-      return null
+      return
     }
 
     if (browser) {
       const currentPath = window.location.pathname
       if (currentPath !== path) {
-        window.history.pushState(null, null, path);
+        window.history.pushState(null, '', path);
       }
     }
   }, [stack, historyName])
@@ -90,6 +90,7 @@ export const Router: FC<RouterProps> = ({
       window.addEventListener?.('popstate', reload)
       return () => window.removeEventListener?.('popstate', reload)
     }
+    return
   }, [])
 
 
