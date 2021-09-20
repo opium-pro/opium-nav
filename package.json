@@ -1,6 +1,6 @@
 {
   "name": "susanin",
-  "version": "0.1.0",
+  "version": "1.0.0-alpha1",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -10,11 +10,10 @@
     "unlink": "npm unlink ract",
     "build": "tsc --project tsconfig.dist.json",
     "clear": "rm -fr ./dist",
-    "dist": "npm run build && rsync -a ./dist/ ../3p5-admin/node_modules/3p5-hooks/dist/"
+    "dist": "npm run build && rsync -a ./dist/ ../3p5-admin/node_modules/3p5-hooks/dist/",
+    "publish": "npm run build && npm publish"
   },
-  "dependencies": {
-    
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^16.0.0",
     "@types/react": "^17.0.13",
