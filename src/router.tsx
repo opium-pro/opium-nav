@@ -75,11 +75,12 @@ export const Router: FC<RouterProps> = ({
   // Add current url to history on first loading
   useEffect(() => {
     if (browser) {
-      const currentPath = window.location.pathname
+      const currentPath = window.location.pathname + window.location.search
       if (currentPath !== path) {
-        defaultStack[historyName] = [...history, currentPath]
+        defaultStack[historyName] = [...defaultStack[historyName], currentPath]
       }
     }
+
     setStack(defaultStack)
   }, [])
 
