@@ -39,7 +39,14 @@ export const Router: FC<RouterProps> = ({
   }
 
   function go(path: string, params?: object) {
-    const newHistory = [...stack[historyName], path]
+    let newPath = path
+    if (params) {
+      newPath += '?'
+      for (const key in params) {
+        newPath += `${key}=${params[key]}`
+      }
+    }
+    const newHistory = [...stack[historyName], newPath]
     setHistory(newHistory)
   }
 
@@ -61,10 +68,7 @@ export const Router: FC<RouterProps> = ({
     }
 
     if (browser) {
-      const currentPath = window.location.pathname
-      if (currentPath !== path) {
-        window.history.pushState(null, '', path);
-      }
+      window.history.pushState(null, '', path)
     }
   }, [stack, historyName])
 
@@ -109,6 +113,7 @@ export const Router: FC<RouterProps> = ({
       switchHistory,
       clear,
       reload,
+      browser,
     }} />
   )
 }

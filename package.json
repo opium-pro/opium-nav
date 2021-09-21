@@ -13,7 +13,9 @@
     "dist": "npm run build && rsync -a ./dist/ ../3p5-admin/node_modules/3p5-hooks/dist/",
     "publish": "npm run build && npm publish"
   },
-  "dependencies": {},
+  "dependencies": {
+    "query-string": "^7.0.1"
+  },
   "devDependencies": {
     "@types/node": "^16.0.0",
     "@types/react": "^17.0.13",
