@@ -48,7 +48,7 @@ export const Router: FC<RouterProps> = ({
     setHistoryName(name)
   }
 
-  function go(path: string, params?: object, writeBrowserHistory = true) {
+  function go(path: string, params?: object, writeHistory = true) {
     let newPath = path
     if (params) {
       newPath += '?'
@@ -56,14 +56,20 @@ export const Router: FC<RouterProps> = ({
         newPath += `${key}=${params[key]}`
       }
     }
-    const newHistory = [...stack[historyName], newPath]
+    const newHistory = writeHistory
+      ? [...stack[historyName], newPath]
+      : [...stack[historyName].slice(0, -1), newPath]
     setHistory(newHistory)
-    browser && writeBrowserHistory && window.history.pushState(null, '', path)
+    browser && writeHistory && window.history.pushState(null, '', path)
+  }
+
+  function replace(path: string, params?: object) {
+    go(path, params, false)
   }
 
   function back(writeBrowserHistory = true) {
     if (history?.length > 1) {
-      const newHistory = history.slice(0, history.length - 1)
+      const newHistory = history.slice(0, -1)
       setHistory(newHistory)
       browser && writeBrowserHistory && window.history.pushState(null, '', newHistory.slice(-1))
     }
@@ -112,6 +118,7 @@ export const Router: FC<RouterProps> = ({
       history,
       path,
       go,
+      replace,
       back,
       setHistory,
       switchHistory,
