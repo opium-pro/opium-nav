@@ -7,6 +7,15 @@ export interface RouterProps {
   defaultStack?: { [key: string]: string[] }
 }
 
+function useForceUpdate() {
+  const [value, setValue] = useState(0)
+  return {
+    forceUpdate: (event) => {console.log(event);
+    ;setValue(value => value + 1)},
+    forceUpdated: value
+  }
+}
+
 
 export const Router: FC<RouterProps> = ({
   defaultPath = '/',
@@ -18,6 +27,7 @@ export const Router: FC<RouterProps> = ({
   const [browser] = useState(!!(window?.location && window?.history))
   const [stack, setStack] = useState({})
   const [historyName, setHistoryName] = useState(Object.keys(defaultStack)[0])
+  const { forceUpdate, forceUpdated } = useForceUpdate()
 
   const history = stack[historyName] || []
   const path = history[history.length - 1]
@@ -38,7 +48,7 @@ export const Router: FC<RouterProps> = ({
     setHistoryName(name)
   }
 
-  function go(path: string, params?: object) {
+  function go(path: string, params?: object, writeBrowserHistory = true) {
     let newPath = path
     if (params) {
       newPath += '?'
@@ -48,29 +58,20 @@ export const Router: FC<RouterProps> = ({
     }
     const newHistory = [...stack[historyName], newPath]
     setHistory(newHistory)
+    browser && writeBrowserHistory && window.history.pushState(null, '', path)
   }
 
-  function back() {
+  function back(writeBrowserHistory = true) {
     if (history?.length > 1) {
       const newHistory = history.slice(0, history.length - 1)
       setHistory(newHistory)
+      browser && writeBrowserHistory && window.history.pushState(null, '', newHistory.slice(-1))
     }
   }
 
   function clear() {
     setHistory([stack[historyName][0]])
   }
-
-  // Change browser path
-  useEffect(() => {
-    if (!stack[historyName]) {
-      return
-    }
-
-    if (browser) {
-      window.history.pushState(null, '', path)
-    }
-  }, [stack, historyName])
 
   // Add current url to history on first loading
   useEffect(() => {
@@ -91,17 +92,19 @@ export const Router: FC<RouterProps> = ({
   }
 
   useEffect(() => {
+    back(false)
+  }, [forceUpdated])
+
+  // Track browser back and forward
+  useEffect(() => {
     if (browser) {
-      window.addEventListener?.('popstate', reload)
-      return () => window.removeEventListener?.('popstate', reload)
+      window.addEventListener?.('popstate', forceUpdate)
+      return () => window.removeEventListener?.('popstate', forceUpdate)
     }
     return
   }, [])
 
-
-  if (!stack[historyName]) {
-    return null
-  }
+  if (!stack[historyName]) { return null }
 
   return (
     <Context.Provider {...rest} value={{
