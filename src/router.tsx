@@ -10,7 +10,7 @@ export interface RouterProps {
 function useForceUpdate() {
   const [value, setValue] = useState(0)
   return {
-    forceUpdate: (event) => {setValue(value => value + 1)},
+    forceUpdate: (event?: any) => {setValue(value => value + 1)},
     forceUpdated: value
   }
 }
@@ -65,6 +65,9 @@ export const Router: FC<RouterProps> = ({
 
   function replace(path: string, params?: object) {
     go(path, params, false)
+    if (browser) {
+      window.history.replaceState(null, '', path)
+    }
   }
 
   function back(writeBrowserHistory = true) {
@@ -92,6 +95,7 @@ export const Router: FC<RouterProps> = ({
   }, [])
 
   function reload() {
+    forceUpdate()
     if (browser) {
       window.history.go?.()
     }
@@ -108,7 +112,9 @@ export const Router: FC<RouterProps> = ({
   useEffect(() => {
     if (browser) {
       const newPath = window.location.pathname+window.location.search
-      go(newPath, null, false)
+      if (newPath !== path) {
+        go(newPath, null, false)
+      }
     }
   }, [forceUpdated])
 
