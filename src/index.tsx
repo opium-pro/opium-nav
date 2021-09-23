@@ -1,16 +1,20 @@
 import { Router } from './router'
 import * as path from './path'
-
-type Susanin = typeof Router & typeof path
-const susanin: Susanin = (Router as Susanin)
-
-
-Object.keys(path).forEach((key) => {
-  susanin[key] = path[key]
-})
+import * as context from './context'
+import * as settings from './settings'
 
 
-export default susanin
+type OpiumNav = typeof Router & typeof path
+const opiumNav: OpiumNav = (Router as OpiumNav)
+
+
+Object.keys(path).forEach((key) => { opiumNav[key] = path[key] })
+Object.keys(settings).forEach((key) => { opiumNav[key] = settings[key] })
+Object.keys(context).forEach((key) => { opiumNav[key] = context[key] })
+
+
+export default opiumNav
 export * from './router'
 export * from './path'
 export * from './context'
+export * from './settings'
