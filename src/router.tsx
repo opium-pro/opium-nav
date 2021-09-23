@@ -10,8 +10,7 @@ export interface RouterProps {
 function useForceUpdate() {
   const [value, setValue] = useState(0)
   return {
-    forceUpdate: (event) => {console.log(event);
-    ;setValue(value => value + 1)},
+    forceUpdate: (event) => {setValue(value => value + 1)},
     forceUpdated: value
   }
 }
@@ -30,7 +29,7 @@ export const Router: FC<RouterProps> = ({
   const { forceUpdate, forceUpdated } = useForceUpdate()
 
   const history = stack[historyName] || []
-  const path = history[history.length - 1]
+  const path = history[history?.length - 1]
 
   function setHistory(history: string[]) {
     setStack({
@@ -56,9 +55,10 @@ export const Router: FC<RouterProps> = ({
         newPath += `${key}=${params[key]}`
       }
     }
+    // const newHistory = [...(stack[historyName] || []), newPath]
     const newHistory = writeHistory
-      ? [...stack[historyName], newPath]
-      : [...stack[historyName].slice(0, -1), newPath]
+      ? [...(stack[historyName] || []), newPath]
+      : [...(stack[historyName] || [])?.slice(0, -1), newPath]
     setHistory(newHistory)
     browser && writeHistory && window.history.pushState(null, '', path)
   }
@@ -97,10 +97,6 @@ export const Router: FC<RouterProps> = ({
     }
   }
 
-  useEffect(() => {
-    back(false)
-  }, [forceUpdated])
-
   // Track browser back and forward
   useEffect(() => {
     if (browser) {
@@ -109,6 +105,12 @@ export const Router: FC<RouterProps> = ({
     }
     return
   }, [])
+  useEffect(() => {
+    if (browser) {
+      const newPath = window.location.pathname+window.location.search
+      go(newPath, null, false)
+    }
+  }, [forceUpdated])
 
   if (!stack[historyName]) { return null }
 
