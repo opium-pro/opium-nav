@@ -70,11 +70,13 @@ export const Router: FC<RouterProps> = ({
     }
   }
 
-  function back(writeBrowserHistory = true) {
+  function back() {
     if (history?.length > 1) {
       const newHistory = history.slice(0, -1)
       setHistory(newHistory)
-      browser && writeBrowserHistory && window.history.pushState(null, '', newHistory.slice(-1))
+    }
+    if (browser) {
+      window.history.back()
     }
   }
 
