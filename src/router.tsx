@@ -53,8 +53,6 @@ export const Router: FC<RouterProps> = ({
     const newStack = { ...stack }
     if (!newStack[name]) {
       newStack[name] = [newPath]
-      console.log(newStack);
-
       setStack(newStack)
     }
     if (reset || (historyName === name)) {
@@ -129,8 +127,6 @@ export const Router: FC<RouterProps> = ({
   // Handle localstorge
   // Before render
   useEffect(() => {
-    setIsReady(true)
-
     if (isBrowser) {
       const browserPath = window.location.pathname + window.location.search
       if (browserPath !== path) {
@@ -138,12 +134,7 @@ export const Router: FC<RouterProps> = ({
       }
     }
 
-    if (!saveState) {
-      localStorage.removeHistory()
-      return
-    }
-
-    localStorage.getHistory().then((local) => {
+    saveState ? localStorage.getHistory().then((local) => {
       if (!local) { return }
       const newHistory = local.stack[local.historyName] || [defaultPath]
       if (isBrowser) {
@@ -157,7 +148,9 @@ export const Router: FC<RouterProps> = ({
       if (historyName !== local.historyName) {
         setHistoryName(local.historyName)
       }
-    })
+    }) : localStorage.removeHistory()
+
+    setTimeout(() => setIsReady(true))
   }, [])
 
   // Track isBrowser back and forward
