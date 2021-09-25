@@ -1,6 +1,7 @@
 import React, { useState, FC, useEffect } from 'react'
 import { Context } from './context'
 import { localStorage } from './local-storage'
+import { handleChange } from './settings'
 
 
 export interface RouterProps {
@@ -185,6 +186,11 @@ export const Router: FC<RouterProps> = ({
       }
     }
   }, [forceUpdated])
+
+  // Track changes
+  useEffect(() => {
+    handleChange?.(path, fullHistory, stack)
+  }, [fullHistory, stack])
 
   if (!fullHistory[stack] || !isReady) { return null }
 
