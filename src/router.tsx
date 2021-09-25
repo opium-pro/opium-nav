@@ -5,11 +5,11 @@ import { localStorage } from './local-storage'
 
 export interface RouterProps {
   defaultPath?: string
-  defaultHistoryName?: string,
-  defaultStack?: { [key: string]: string[] }
+  defaultStack?: string,
+  defaultFullStory?: { [key: string]: string[] }
   saveState?: boolean
   browser?: boolean
-  autoSwitchHistory?: boolean
+  autoSwitchStack?: boolean
 }
 
 function useForceUpdate() {
@@ -24,41 +24,41 @@ function useForceUpdate() {
 export const Router: FC<RouterProps> = ({
   browser = !!(window?.location && window?.history),
   defaultPath,
-  defaultHistoryName,
-  defaultStack = {
-    [defaultHistoryName]: [defaultPath]
+  defaultStack,
+  defaultFullStory = {
+    [defaultStack]: [defaultPath]
   },
   saveState = false,
-  autoSwitchHistory,
+  autoSwitchStack,
   ...rest
 }) => {
   const [isBrowser] = useState(browser)
   const [isReady, setIsReady] = useState(false)
+  const [fullHistory, setFullHistory] = useState(defaultFullStory)
   const [stack, setStack] = useState(defaultStack)
-  const [historyName, setHistoryName] = useState(defaultHistoryName)
   const { forceUpdate, forceUpdated } = useForceUpdate()
 
-  const history = stack[historyName] || [defaultPath]
+  const history = fullHistory[stack] || [defaultPath]
   const path = history[history?.length - 1]
 
   function setHistory(history: string[]) {
-    setStack({
-      ...stack,
-      [historyName]: history,
+    setFullHistory({
+      ...fullHistory,
+      [stack]: history,
     })
   }
 
-  function switchHistory(name: string, initialPath?: string, reset = false) {
+  function toStack(name: string, initialPath?: string, reset = false) {
     const newPath = initialPath || defaultPath || name
-    const newStack = { ...stack }
+    const newStack = { ...fullHistory }
     if (!newStack[name]) {
       newStack[name] = [newPath]
-      setStack(newStack)
+      setFullHistory(newStack)
     }
-    if (reset || (historyName === name)) {
+    if (reset || (stack === name)) {
       clear(newPath)
     } else {
-      setHistoryName(name)
+      setStack(name)
     }
   }
 
@@ -71,10 +71,10 @@ export const Router: FC<RouterProps> = ({
         newPath += `${key}=${params[key]}${isLast ? '' : '&'}`
       })
     }
-    if (autoSwitchHistory && (newPath.indexOf(historyName) !== 0)) {
-      for (const name in stack) {
+    if (autoSwitchStack && (newPath.indexOf(stack) !== 0)) {
+      for (const name in fullHistory) {
         if (newPath.indexOf(name) === 0) {
-          switchHistory(name, newPath)
+          toStack(name, newPath)
           return
         }
       }
@@ -99,22 +99,22 @@ export const Router: FC<RouterProps> = ({
     if (history?.length > 1) {
       newHistory = history.slice(0, -1)
       setHistory(newHistory)
-    } else if (historyName !== defaultHistoryName) {
-      switchHistory(defaultHistoryName, defaultPath)
+    } else if (stack !== defaultStack) {
+      toStack(defaultStack, defaultPath)
     }
   }
 
   function clear(initialPath) {
-    setHistory([initialPath || stack[historyName][0]])
+    setHistory([initialPath || fullHistory[stack][0]])
   }
 
   function reset(path = defaultPath) {
     const newStack = {
-      ...defaultStack,
-      [defaultHistoryName]: [path]
+      ...defaultFullStory,
+      [defaultStack]: [path]
     }
-    setStack(newStack)
-    setHistoryName(defaultHistoryName)
+    setFullHistory(newStack)
+    setStack(defaultStack)
   }
 
   function reload() {
@@ -136,17 +136,17 @@ export const Router: FC<RouterProps> = ({
 
     saveState ? localStorage.getHistory().then((local) => {
       if (!local) { return }
-      const newHistory = local.stack[local.historyName] || [defaultPath]
+      const newHistory = local.fullHistory[local.stack] || [defaultPath]
       if (isBrowser) {
         const browserPath = window.location.pathname + window.location.search
         if (browserPath !== newHistory.slice(-1)[0]) {
           newHistory.push(browserPath)
         }
       }
-      const newStack = { ...local.stack, [local.historyName]: newHistory }
-      setStack(newStack)
-      if (historyName !== local.historyName) {
-        setHistoryName(local.historyName)
+      const newStack = { ...local.fullHistory, [local.stack]: newHistory }
+      setFullHistory(newStack)
+      if (stack !== local.stack) {
+        setStack(local.stack)
       }
     }) : localStorage.removeHistory()
 
@@ -173,8 +173,8 @@ export const Router: FC<RouterProps> = ({
 
   // Update localstorage
   useEffect(() => {
-    isReady && saveState && localStorage.setHistory({ stack, historyName })
-  }, [stack, historyName, isReady])
+    isReady && saveState && localStorage.setHistory({ fullHistory, stack })
+  }, [fullHistory, stack, isReady])
 
   // Back and Forward click
   useEffect(() => {
@@ -186,19 +186,19 @@ export const Router: FC<RouterProps> = ({
     }
   }, [forceUpdated])
 
-  if (!stack[historyName] || !isReady) { return null }
+  if (!fullHistory[stack] || !isReady) { return null }
 
   return (
     <Context.Provider {...rest} value={{
-      stack,
+      fullHistory,
       history,
       path,
       go,
       replace,
       back,
       setHistory,
-      switchHistory,
-      historyName,
+      toStack,
+      stack,
       clear,
       reload,
       isBrowser,
