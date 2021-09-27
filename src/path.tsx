@@ -19,8 +19,8 @@ export const Path: FC<PathProps> = ({ name, component, ...rest }) => {
   for (const key in pathParams) { params[key] = pathParams[key] }
 
   const cleanPath = nav.path?.split('?')[0]
-  const splitPath = cleanPath?.replace(/\/$/, '')?.split('/') || []
-  const splitName = name?.split('/') || []
+  const splitPath = cleanPath?.replace(/^\//, '').replace(/\/$/, '')?.split('/') || []
+  const splitName = name?.replace(/^\//, '').replace(/\/$/, '')?.split('/') || []
   const normilizedName: any = []
 
   // Raplace variables in name

@@ -4,6 +4,12 @@ import { localStorage } from './local-storage'
 import { handleChange } from './settings'
 
 
+export let matched = 0
+export function setMatched() {
+  matched++
+}
+
+
 export interface RouterProps {
   history?: string[]
   backHistory?: string[]
