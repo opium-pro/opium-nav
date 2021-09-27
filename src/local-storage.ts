@@ -10,7 +10,8 @@ export const localStorage = {
   },
 
   getHistory: async () => {
-    return JSON.parse(defaultLocalStorage.getItem(key))
+    const result = defaultLocalStorage.getItem(key)
+    return result ? JSON.parse(result) : {}
   },
 
   removeHistory: async () => {
