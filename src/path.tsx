@@ -2,6 +2,7 @@ import React, { FC, useEffect, useRef, useState } from 'react'
 import { useNav } from './context'
 import { ParamsContext } from './context'
 import queryString from 'query-string'
+import { setMatched, matched } from './router'
 
 
 export interface PathProps {
@@ -38,12 +39,21 @@ export const Path: FC<PathProps> = ({ name, component, ...rest }) => {
     }
   }
 
-  const matches = splitPath.join('/') === normilizedName.join('/')
-  if (!matches) { return null }
-
-  return (
+  const render = (
     <ParamsContext.Provider value={params}>
       <Component params={params} nav={nav} />
     </ParamsContext.Provider>
   )
+
+  const matches = splitPath.join('/') === normilizedName.join('/')
+  if (!matches) {
+    if (!matched && !name) {
+      // 404 page
+      return render
+    }
+    return null
+  }
+
+  setMatched()
+  return render
 }

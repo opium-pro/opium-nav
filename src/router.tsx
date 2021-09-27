@@ -4,9 +4,15 @@ import { localStorage } from './local-storage'
 import { handleChange } from './settings'
 
 
-export let matched = 0
-export function setMatched() {
-  matched++
+export let matched
+export function setMatched(arg?: string | false) {
+  if (arg === false) {
+    matched = undefined
+  } else if (!Array.isArray(matched)) {
+    matched = [arg]
+  } else {
+    matched.push(arg)
+  }
 }
 
 
@@ -187,6 +193,10 @@ export const Router: FC<RouterProps> = ({
   useEffect(() => {
     handleChange?.(path, history, backHistory)
   }, [history, backHistory])
+
+  useEffect(() => {
+    setMatched(false)
+  }, [path])
 
   if (!isReady) { return null }
 
