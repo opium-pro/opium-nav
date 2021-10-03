@@ -90,12 +90,32 @@ export const Router: FC<RouterProps> = ({
     setHistory([...history?.slice(0, -1), newPath])
   }
 
-  function back(pop: number = 1) {
+  function backInStack(stack: string) {
+    const match = history.filter(item => item.indexOf(stack) === 0)
+    const last = match.slice(-1)[0]
+    function findPrev(index = match.length - 1) {
+      if (index < 0) {
+        return stack
+      }
+      if (match[index] !== last) {
+        return match[index]
+      }
+      return findPrev(index - 1)
+    }
+    go(isStack(stack) ? findPrev() : last)
+  }
+
+  function back(popOrStack: number = 1) {
+    if (typeof popOrStack === 'string') {
+      backInStack(popOrStack)
+      return
+    }
+
     let newHistory
     let popped
-    if (history.length > 1 && pop < history.length) {
-      newHistory = history.slice(0, -pop)
-      popped = history.slice(-pop)
+    if (history.length > 1 && popOrStack < history.length) {
+      newHistory = history.slice(0, -popOrStack)
+      popped = history.slice(-popOrStack)
       setHistory(newHistory)
     } else {
       popped = history
@@ -216,6 +236,7 @@ export const Router: FC<RouterProps> = ({
       browser,
       reset,
       forward,
+      backInStack,
     }} />
   )
 }
