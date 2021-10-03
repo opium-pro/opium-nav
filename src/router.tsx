@@ -4,7 +4,7 @@ import { localStorage } from './local-storage'
 import { handleChange } from './settings'
 
 
-export let matched
+export let matched: any
 export function setMatched(arg?: string | false) {
   if (arg === false) {
     matched = undefined
@@ -48,7 +48,7 @@ export const Router: FC<RouterProps> = ({
 
   const path = history.length ? history.slice(-1)[0] : defaultPath
 
-  function isStack(name) {
+  function isStack(name: string) {
     return path.indexOf(name) === 0
   }
 
@@ -111,7 +111,7 @@ export const Router: FC<RouterProps> = ({
     }
   }
 
-  function reset(initialPath) {
+  function reset(initialPath?: string) {
     setHistory([initialPath || defaultPath])
   }
 
