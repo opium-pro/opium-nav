@@ -91,36 +91,46 @@ export const Router: FC<RouterProps> = ({
   }
 
   function backInStack(stack: string) {
-    const match = history.filter(item => item.indexOf(stack) === 0)
-    const last = match.slice(-1)[0]
-    function findPrev(index = match.length - 1) {
+    if (typeof stack !== 'string') {
+      const splitPath = path.split('/')
+      stack = splitPath[0] || `/${splitPath[1]}`
+    }
+    const stackHistory = history.filter(item => item.indexOf(stack) === 0)
+    const last = stackHistory.slice(-1)[0]
+    function findPrev(index = stackHistory.length - 1) {
       if (index < 0) {
         return stack
       }
-      if (match[index] !== last) {
-        return match[index]
+      if (stackHistory[index] !== last) {
+        return stackHistory[index]
       }
       return findPrev(index - 1)
     }
-    go(isStack(stack) ? findPrev() : last)
+    const prev = findPrev()
+    const newHistory = history.length ? [...history.slice(0, -1)] : [stack]
+    if (prev !== newHistory.slice(-1)[0]) {
+      newHistory.push(prev)
+    }
+    setBackHistory([...backHistory, ...history.slice(-1)])
+    setHistory(newHistory)
   }
 
-  function back(popOrStack: number = 1) {
-    if (typeof popOrStack === 'string') {
-      backInStack(popOrStack)
-      return
+  function back(pop?: number) {
+    if (typeof pop !== 'number') {
+      pop = 1
     }
 
     let newHistory
     let popped
-    if (history.length > 1 && popOrStack < history.length) {
-      newHistory = history.slice(0, -popOrStack)
-      popped = history.slice(-popOrStack)
+    if (history.length > 1 && pop < history.length) {
+      newHistory = history.slice(0, -pop)
+      popped = history.slice(-pop)
       setHistory(newHistory)
     } else {
-      popped = history
-      setHistory([defaultPath])
+      popped = [...history]
+      newHistory = [defaultPath]
     }
+    setHistory(newHistory)
     setBackHistory([...backHistory, ...popped.reverse()])
   }
 
