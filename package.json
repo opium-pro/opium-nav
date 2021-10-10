@@ -7,12 +7,12 @@
     "start": "react-scripts start",
     "watch": "npm run clear && nodemon -e ts,tsx -w ./src -x npm run build",
     "watch:dist": "npm run clear && nodemon -e ts,tsx -w ./src -x npm run dist",
-    "link": "npm link react && npm link",
+    "link": "npm link react",
     "unlink": "npm unlink ract",
     "build": "tsc --project tsconfig.dist.json",
     "clear": "rm -fr ./dist",
     "dist": "npm run build && copyfiles -V ./dist/* ./dist/**/* ../3p5-mobile/node_modules/opium-nav",
-    "publish": "npm run build"
+    "publish": "npm run build && npm publish"
   },
   "dependencies": {
     "query-string": "^7.0.1"
