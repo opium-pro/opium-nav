@@ -2,6 +2,7 @@ import React, { useState, FC, useEffect } from 'react'
 import { Context } from './context'
 import { localStorage } from './local-storage'
 import { handleChange } from './settings'
+import queryString from 'query-string'
 
 
 export let matched: any
@@ -15,81 +16,98 @@ export function setMatched(arg?: string | false) {
   }
 }
 
+export type HistoryItem = [path: string, params?: object]
+
 
 export interface RouterProps {
-  history?: string[]
-  backHistory?: string[]
+  history?: HistoryItem[]
+  backHistory?: HistoryItem[]
   saveState?: boolean
   browser?: boolean
   defaultPath?: string
-  keepMounted?: number
 }
 
-function useForceUpdate() {
+function useUpdate() {
   const [value, setValue] = useState(0)
-  return {
-    forceUpdate: (event?: any) => { setValue(value => value + 1) },
-    forceUpdated: value
-  }
+  return [
+    (event?: any) => { setValue(value => value + 1) },
+    value
+  ]
 }
 
 
 export const Router: FC<RouterProps> = ({
   browser = !!(window?.location && window?.history),
   defaultPath = '/',
-  history: defaultHistory = [defaultPath],
+  history: defaultHistory = [[defaultPath, {}]],
   backHistory: defaultBackHistory = [],
   saveState = false,
-  keepMounted = 0,
   ...rest
 }) => {
   const [isReady, setIsReady] = useState(false)
-  const [history, setHistory] = useState(defaultHistory)
-  const [backHistory, setBackHistory] = useState(defaultBackHistory)
-  const { forceUpdate, forceUpdated } = useForceUpdate()
+  const [state, setState]: any = useState({
+    history: defaultHistory,
+    backHistory: defaultBackHistory,
+  })
+  const [update, updated]: any = useUpdate()
+  const { history, backHistory } = state
 
-  const fullPath = history.length ? history.slice(-1)[0] : defaultPath
-  const path = fullPath.split('?')[0]
+  const path = history.length ? history.slice(-1)[0][0] : defaultPath
+  const cleanPath = path.split('?')[0]?.replace(/^\//, '').replace(/\/$/, '')
+  const params = history.length ? history.slice(-1)[0][1] : {}
+  if (path.includes('?')) {
+    const pathParams = queryString.parse(path.split('?')[1]) || {}
+    Object.assign(params, pathParams)
+  }
 
-  function isStack(name: string) {
-    return path.indexOf(name) === 0
+  function isStack(stackName: string, currentPath = path) {
+    return currentPath.indexOf(stackName) === 0
   }
 
   function toStack(name: string, reset: boolean = false) {
-    const initialPath = name
-    const match = history.filter(item => item.indexOf(name) === 0)
-    const first = match.length ? match[0] : (initialPath || defaultPath)
-    const last = match.length ? match.slice(-1)[0] : (initialPath || defaultPath)
+    const match: HistoryItem[] = history.filter(([item]) => isStack(name, item))
+    const first: HistoryItem = match.length ? match[0] : [name || defaultPath, {}]
+    const last: HistoryItem = match.length ? match.slice(-1)[0] : [name || defaultPath, {}]
     if (isStack(name) || reset) {
-      go(first)
+      go(...first)
     } else {
-      go(last)
+      go(...last)
     }
   }
 
-  function combinePath(newPath: string, params?: { [key: string]: any } | null): string {
-    if (!newPath) { return defaultPath }
-    if (params) {
-      newPath += newPath?.indexOf('?') >= 0 ? '&' : '?'
-      Object.keys(params).forEach((key, index) => {
-        const isLast = index + 1 === Object.keys(params).length
-        newPath += `${key}=${params[key]}${isLast ? '' : '&'}`
-      })
-    }
-    return newPath
-  }
+  // function combinePath(newPath: string, params?: { [key: string]: any } | null): string {
+  //   if (!newPath) { return defaultPath }
+  //   if (params) {
+  //     newPath += newPath?.indexOf('?') >= 0 ? '&' : '?'
+  //     Object.keys(params).forEach((key, index) => {
+  //       const isLast = index + 1 === Object.keys(params).length
+  //       newPath += `${key}=${params[key]}${isLast ? '' : '&'}`
+  //     })
+  //   }
+  //   return newPath
+  // }
 
   function go(newPath: string, params?: object | null) {
-    newPath = combinePath(newPath, params)
-    if (newPath !== history.slice(-1)[0]) {
-      setHistory([...history, newPath])
-      setBackHistory([])
+    if (newPath !== path) {
+      setState({
+        ...state,
+        history: [...history, [newPath, params]],
+        backHistory: [],
+      })
+    } else {
+      update()
     }
   }
 
   function replace(newPath: string, params?: object) {
-    newPath = combinePath(newPath, params)
-    setHistory([...history?.slice(0, -1), newPath])
+    if (newPath !== path) {
+      setState({
+        ...state,
+        history: [...history?.slice(0, -1), [newPath, params]],
+      })
+    } else {
+      update()
+    }
   }
 
   function backInStack(stack: string) {
@@ -97,24 +115,27 @@ export const Router: FC<RouterProps> = ({
       const splitPath = path.split('/')
       stack = splitPath[0] || `/${splitPath[1]}`
     }
-    const stackHistory = history.filter(item => item.indexOf(stack) === 0)
+    const stackHistory: HistoryItem[] = history.filter(([item]) => item.indexOf(stack) === 0)
     const last = stackHistory.slice(-1)[0]
-    function findPrev(index = stackHistory.length - 1) {
+    function findPrev(index = stackHistory.length - 1): HistoryItem {
       if (index < 0) {
-        return stack
+        return [stack, {}]
       }
       if (stackHistory[index] !== last) {
         return stackHistory[index]
       }
       return findPrev(index - 1)
     }
-    const prev = findPrev()
-    const newHistory = history.length ? [...history.slice(0, -1)] : [stack]
-    if (prev !== newHistory.slice(-1)[0]) {
+    const prev: HistoryItem = findPrev()
+    const newHistory: HistoryItem[] = history.length ? [...history.slice(0, -1)] : [[stack, {}]]
+    if (prev[0] !== newHistory.slice(-1)[0][0]) {
       newHistory.push(prev)
     }
-    setBackHistory([...backHistory, ...history.slice(-1)])
-    setHistory(newHistory)
+    setState({
+      ...state,
+      history: newHistory,
+      backHistory: [...backHistory, ...history.slice(-1)],
+    })
   }
 
   function back(pop?: number) {
@@ -124,31 +145,37 @@ export const Router: FC<RouterProps> = ({
 
     let newHistory
     let popped
-    if (history.length > 1 && pop < history.length) {
+    if (history.length > pop) {
       newHistory = history.slice(0, -pop)
       popped = history.slice(-pop)
-      setHistory(newHistory)
-    } else {
-      popped = [...history]
-      newHistory = [defaultPath]
+
+      setState({
+        ...state,
+        history: newHistory,
+        backHistory: [...backHistory, ...popped.reverse()],
+      })
     }
-    setHistory(newHistory)
-    setBackHistory([...backHistory, ...popped.reverse()])
   }
 
   function forward() {
     if (backHistory.length) {
-      setHistory([...history, backHistory.slice(-1)[0]])
-      setBackHistory([...backHistory.slice(0, -1)])
+      setState({
+        ...state,
+        history: [...history, ...backHistory.slice(-1)],
+        backHistory: [...backHistory.slice(0, -1)],
+      })
     }
   }
 
   function reset(initialPath?: string) {
-    setHistory([initialPath || defaultPath])
+    setState({
+      ...state,
+      history: [[initialPath || defaultPath, {}]],
+    })
   }
 
   function reload() {
-    forceUpdate()
+    update()
     if (browser) {
       window.history.go?.()
     }
@@ -156,7 +183,10 @@ export const Router: FC<RouterProps> = ({
 
   useEffect(() => {
     if (!history.length) {
-      setHistory([defaultPath])
+      setState({
+        ...state,
+        history: defaultHistory,
+      })
     }
   }, [history])
 
@@ -165,23 +195,29 @@ export const Router: FC<RouterProps> = ({
   useEffect(() => {
     if (browser) {
       const browserPath = window.location.pathname + window.location.search
-      if (browserPath !== fullPath) {
-        setHistory([...history, browserPath])
+      if (browserPath !== path) {
+        setState({
+          ...state,
+          history: [...history, [browserPath, {}]],
+        })
       }
     }
 
     saveState ? localStorage.getHistory().then((local) => {
       if (!local) { return }
-      const newHistory = local.history || [defaultPath]
+      const newHistory = local.history || defaultHistory
       if (browser) {
         const browserPath = window.location.pathname + window.location.search
         if (browserPath !== newHistory.slice(-1)[0]) {
-          newHistory.push(browserPath)
+          newHistory.push([browserPath, {}])
         }
       }
       const newBackHistory = local.backHistory || []
-      setHistory(newHistory)
-      setBackHistory(newBackHistory)
+      setState({
+        ...state,
+        history: newHistory,
+        backHistory: newBackHistory,
+      })
     }) : localStorage.removeHistory()
 
     setTimeout(() => setIsReady(true))
@@ -190,8 +226,8 @@ export const Router: FC<RouterProps> = ({
   // Track browser back and forward
   useEffect(() => {
     if (browser) {
-      window.addEventListener?.('popstate', forceUpdate)
-      return () => window.removeEventListener?.('popstate', forceUpdate)
+      window.addEventListener?.('popstate', update)
+      return () => window.removeEventListener?.('popstate', update)
     }
     return
   }, [])
@@ -200,11 +236,11 @@ export const Router: FC<RouterProps> = ({
   useEffect(() => {
     if (isReady && browser) {
       const browserPath = window.location.pathname + window.location.search
-      if (browserPath !== fullPath) {
-        window.history.pushState(null, '', fullPath)
+      if (browserPath !== path) {
+        window.history.pushState(null, '', path)
       }
     }
-  }, [fullPath, isReady])
+  }, [path, isReady])
 
   // Update localstorage
   useEffect(() => {
@@ -213,22 +249,22 @@ export const Router: FC<RouterProps> = ({
 
   // Back and Forward click
   useEffect(() => {
-    if (forceUpdated && browser) {
+    if (updated && browser) {
       const newPath = window.location.pathname + window.location.search
-      if (newPath !== fullPath) {
+      if (newPath !== path) {
         go(newPath)
       }
     }
-  }, [forceUpdated])
+  }, [updated])
 
   // Track changes
   useEffect(() => {
-    handleChange?.(fullPath, history, backHistory)
+    handleChange?.(path, history, backHistory)
   }, [history, backHistory])
 
   useEffect(() => {
     setMatched(false)
-  }, [fullPath])
+  }, [path])
 
   if (!isReady) { return null }
 
@@ -240,8 +276,6 @@ export const Router: FC<RouterProps> = ({
       go,
       replace,
       back,
-      setHistory,
-      setBackHistory,
       toStack,
       isStack,
       reload,
@@ -249,8 +283,7 @@ export const Router: FC<RouterProps> = ({
       reset,
       forward,
       backInStack,
-      fullPath,
-      keepMounted,
+      cleanPath,
     }} />
   )
 }

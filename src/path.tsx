@@ -1,82 +1,60 @@
-import React, { FC, memo, useEffect } from 'react'
+import React, { FC } from 'react'
 import { useNav } from './context'
 import { ParamsContext } from './context'
-import queryString from 'query-string'
 import { setMatched, matched } from './router'
 
 
 export interface PathProps {
   name?: string
   component: any
-  cover?: boolean
+  nav?: any,
 }
 
-export const Path: FC<PathProps> = memo(({
-  name,
-  component,
-  cover,
-  ...rest
-}) => {
-  const Component = component
-  const nav = useNav()
-  const params = { ...rest }
+export const Path: FC<PathProps> = (props) => {
+  const {
+    name,
+    component,
+    nav = useNav(),
+    ...rest
+  } = props
 
-  // Add params from path
-  const pathParams = queryString.parse(nav.fullPath?.split('?')[1]) || {}
-  for (const key in pathParams) { params[key] = pathParams[key] }
-
-  const splitPath = nav.path?.replace(/^\//, '').replace(/\/$/, '')?.split('/') || []
-  const splitName = name?.replace(/^\//, '').replace(/\/$/, '')?.split('/') || []
+  const newParams = { ...nav.params, ...rest }
   const normilizedName: any = []
-
+  const splitName = name?.replace(/^\//, '').replace(/\/$/, '')?.split('/') || []
+  const splitPath = nav.path?.replace(/^\//, '').replace(/\/$/, '')?.split('/') || []
   // Raplace variables in name
   for (const index in splitName) {
     const namePart = splitName[index]
     const pathPart = splitPath[index]
     if (namePart?.[0] === ':') {
       const varName = namePart.slice(1)
-      params[varName] = pathPart
+      newParams[varName] = pathPart
       normilizedName.push(pathPart || namePart)
     } else {
       normilizedName.push(namePart)
     }
   }
 
-  const pathsToMount =
-    (nav.history.length > nav.keepMounted + 1
-      ? nav.history.slice(-nav.keepMounted - 1)
-      : nav.history)
-      .map((onePath) => onePath.split('?')[0].replace(/^\//, '').replace(/\/$/, ''))
-
-  const zIndex = pathsToMount.lastIndexOf(normilizedName.join('/'))
-
-  const newStyle: any = { zIndex }
-  if (cover) {
-    newStyle.position = 'absolute'
-    newStyle.left = 0
-    newStyle.top = 0
-    newStyle.width = '100%'
-    newStyle.height = '100%'
-  }
-
+  const Component: any = component
   const render = (
-    <ParamsContext.Provider value={params}>
+    <ParamsContext.Provider value={newParams}>
       <Component
-        style={newStyle}
-        {...params}
+        {...newParams}
         nav={nav}
       />
     </ParamsContext.Provider>
   )
 
-  if (zIndex < 0) {
-    if (!matched && !name) {
-      // 404 page
-      return render
-    }
-    return null
+  const hasToRender = normilizedName.join('/') === nav.cleanPath
+  if (hasToRender) {
+    setMatched()
+    return render
   }
 
-  setMatched()
-  return render
-})
+  // 404 page
+  if (!matched && !name) {
+    return render
+  }
+
+  return null
+}
