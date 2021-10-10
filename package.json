@@ -11,7 +11,7 @@
     "unlink": "npm unlink ract",
     "build": "tsc --project tsconfig.dist.json",
     "clear": "rm -fr ./dist",
-    "dist": "npm run build && copyfiles -V ./dist/* ./dist/**/* ../3p5-mobile/node_modules/themeor",
+    "dist": "npm run build && copyfiles -V ./dist/* ./dist/**/* ../3p5-mobile/node_modules/opium-nav",
     "publish": "npm run build"
   },
   "dependencies": {

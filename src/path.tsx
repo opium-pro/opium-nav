@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useRef, useState } from 'react'
+import React, { FC, memo, useEffect } from 'react'
 import { useNav } from './context'
 import { ParamsContext } from './context'
 import queryString from 'query-string'
@@ -6,21 +6,26 @@ import { setMatched, matched } from './router'
 
 
 export interface PathProps {
-  name?: string,
-  component: any,
+  name?: string
+  component: any
+  cover?: boolean
 }
 
-export const Path: FC<PathProps> = ({ name, component, ...rest }) => {
+export const Path: FC<PathProps> = memo(({
+  name,
+  component,
+  cover,
+  ...rest
+}) => {
   const Component = component
   const nav = useNav()
   const params = { ...rest }
 
   // Add params from path
-  const pathParams = queryString.parse(nav.path?.split('?')[1]) || {}
+  const pathParams = queryString.parse(nav.fullPath?.split('?')[1]) || {}
   for (const key in pathParams) { params[key] = pathParams[key] }
 
-  const cleanPath = nav.path?.split('?')[0]
-  const splitPath = cleanPath?.replace(/^\//, '').replace(/\/$/, '')?.split('/') || []
+  const splitPath = nav.path?.replace(/^\//, '').replace(/\/$/, '')?.split('/') || []
   const splitName = name?.replace(/^\//, '').replace(/\/$/, '')?.split('/') || []
   const normilizedName: any = []
 
@@ -32,21 +37,39 @@ export const Path: FC<PathProps> = ({ name, component, ...rest }) => {
       const varName = namePart.slice(1)
       params[varName] = pathPart
       normilizedName.push(pathPart || namePart)
-    } else if (namePart !== pathPart) {
-      return null
     } else {
       normilizedName.push(namePart)
     }
   }
 
+  const pathsToMount =
+    (nav.history.length > nav.keepMounted + 1
+      ? nav.history.slice(-nav.keepMounted - 1)
+      : nav.history)
+      .map((onePath) => onePath.split('?')[0].replace(/^\//, '').replace(/\/$/, ''))
+
+  const zIndex = pathsToMount.lastIndexOf(normilizedName.join('/'))
+
+  const newStyle: any = { zIndex }
+  if (cover) {
+    newStyle.position = 'absolute'
+    newStyle.left = 0
+    newStyle.top = 0
+    newStyle.width = '100%'
+    newStyle.height = '100%'
+  }
+
   const render = (
     <ParamsContext.Provider value={params}>
-      <Component params={params} nav={nav} />
+      <Component
+        style={newStyle}
+        {...params}
+        nav={nav}
+      />
     </ParamsContext.Provider>
   )
 
-  const matches = splitPath.join('/') === normilizedName.join('/')
-  if (!matches) {
+  if (zIndex < 0) {
     if (!matched && !name) {
       // 404 page
       return render
@@ -56,4 +79,4 @@ export const Path: FC<PathProps> = ({ name, component, ...rest }) => {
 
   setMatched()
   return render
-}
+})

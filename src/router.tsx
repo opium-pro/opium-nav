@@ -22,6 +22,7 @@ export interface RouterProps {
   saveState?: boolean
   browser?: boolean
   defaultPath?: string
+  keepMounted?: number
 }
 
 function useForceUpdate() {
@@ -39,6 +40,7 @@ export const Router: FC<RouterProps> = ({
   history: defaultHistory = [defaultPath],
   backHistory: defaultBackHistory = [],
   saveState = false,
+  keepMounted = 0,
   ...rest
 }) => {
   const [isReady, setIsReady] = useState(false)
@@ -46,7 +48,8 @@ export const Router: FC<RouterProps> = ({
   const [backHistory, setBackHistory] = useState(defaultBackHistory)
   const { forceUpdate, forceUpdated } = useForceUpdate()
 
-  const path = history.length ? history.slice(-1)[0] : defaultPath
+  const fullPath = history.length ? history.slice(-1)[0] : defaultPath
+  const path = fullPath.split('?')[0]
 
   function isStack(name: string) {
     return path.indexOf(name) === 0
@@ -64,11 +67,10 @@ export const Router: FC<RouterProps> = ({
     }
   }
 
-  function combinePath(path: string, params?: { [key: string]: any } | null): string {
-    if (!path) { return defaultPath }
-    let newPath = path || history[0]
+  function combinePath(newPath: string, params?: { [key: string]: any } | null): string {
+    if (!newPath) { return defaultPath }
     if (params) {
-      newPath += path?.indexOf('?') >= 0 ? '&' : '?'
+      newPath += newPath?.indexOf('?') >= 0 ? '&' : '?'
       Object.keys(params).forEach((key, index) => {
         const isLast = index + 1 === Object.keys(params).length
         newPath += `${key}=${params[key]}${isLast ? '' : '&'}`
@@ -77,16 +79,16 @@ export const Router: FC<RouterProps> = ({
     return newPath
   }
 
-  function go(path: string, params?: object | null) {
-    const newPath = combinePath(path, params)
+  function go(newPath: string, params?: object | null) {
+    newPath = combinePath(newPath, params)
     if (newPath !== history.slice(-1)[0]) {
       setHistory([...history, newPath])
       setBackHistory([])
     }
   }
 
-  function replace(path: string, params?: object) {
-    const newPath = combinePath(path, params)
+  function replace(newPath: string, params?: object) {
+    newPath = combinePath(newPath, params)
     setHistory([...history?.slice(0, -1), newPath])
   }
 
@@ -163,7 +165,7 @@ export const Router: FC<RouterProps> = ({
   useEffect(() => {
     if (browser) {
       const browserPath = window.location.pathname + window.location.search
-      if (browserPath !== path) {
+      if (browserPath !== fullPath) {
         setHistory([...history, browserPath])
       }
     }
@@ -198,11 +200,11 @@ export const Router: FC<RouterProps> = ({
   useEffect(() => {
     if (isReady && browser) {
       const browserPath = window.location.pathname + window.location.search
-      if (browserPath !== path) {
-        window.history.pushState(null, '', path)
+      if (browserPath !== fullPath) {
+        window.history.pushState(null, '', fullPath)
       }
     }
-  }, [path, isReady])
+  }, [fullPath, isReady])
 
   // Update localstorage
   useEffect(() => {
@@ -213,7 +215,7 @@ export const Router: FC<RouterProps> = ({
   useEffect(() => {
     if (forceUpdated && browser) {
       const newPath = window.location.pathname + window.location.search
-      if (newPath !== path) {
+      if (newPath !== fullPath) {
         go(newPath)
       }
     }
@@ -221,12 +223,12 @@ export const Router: FC<RouterProps> = ({
 
   // Track changes
   useEffect(() => {
-    handleChange?.(path, history, backHistory)
+    handleChange?.(fullPath, history, backHistory)
   }, [history, backHistory])
 
   useEffect(() => {
     setMatched(false)
-  }, [path])
+  }, [fullPath])
 
   if (!isReady) { return null }
 
@@ -247,6 +249,8 @@ export const Router: FC<RouterProps> = ({
       reset,
       forward,
       backInStack,
+      fullPath,
+      keepMounted,
     }} />
   )
 }
