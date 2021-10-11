@@ -54,7 +54,7 @@ export const Router: FC<RouterProps> = ({
 
   const path = history.length ? history.slice(-1)[0][0] : defaultPath
   const cleanPath = path.split('?')[0]?.replace(/^\//, '').replace(/\/$/, '')
-  const params = history.length ? history.slice(-1)[0][1] : {}
+  const params = history.length ? (history.slice(-1)[0][1] || {}) : {}
   if (path.includes('?')) {
     const pathParams = queryString.parse(path.split('?')[1]) || {}
     Object.assign(params, pathParams)
@@ -284,6 +284,7 @@ export const Router: FC<RouterProps> = ({
       forward,
       backInStack,
       cleanPath,
+      params,
     }} />
   )
 }
