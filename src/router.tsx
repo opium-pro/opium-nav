@@ -121,7 +121,7 @@ export const Router: FC<RouterProps> = ({
       if (index < 0) {
         return [stack, {}]
       }
-      if (stackHistory[index] !== last) {
+      if (stackHistory[index][0] !== last[0]) {
         return stackHistory[index]
       }
       return findPrev(index - 1)
@@ -193,22 +193,13 @@ export const Router: FC<RouterProps> = ({
   // Handle localstorge
   // Before render
   useEffect(() => {
-    if (browser) {
-      const browserPath = window.location.pathname + window.location.search
-      if (browserPath !== path) {
-        setState({
-          ...state,
-          history: [...history, [browserPath, {}]],
-        })
-      }
-    }
-
     saveState ? localStorage.getHistory().then((local) => {
       if (!local) { return }
+
       const newHistory = local.history || defaultHistory
       if (browser) {
         const browserPath = window.location.pathname + window.location.search
-        if (browserPath !== newHistory.slice(-1)[0]) {
+        if (browserPath !== newHistory.slice?.(-1)?.[0]?.[0]) {
           newHistory.push([browserPath, {}])
         }
       }
