@@ -84,6 +84,7 @@ export const Router: FC<RouterProps> = ({
       window.addEventListener?.('popstate', update)
       return () => window.removeEventListener?.('popstate', update)
     }
+    return
   }, [])
 
   // Update browser path
