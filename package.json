@@ -1,11 +1,11 @@
 {
   "name": "opium-nav",
-  "version": "1.0.0-alpha6",
-  "description": "",
+  "version": "1.0.0",
+  "description": "Lightweight router for React and React Native apps",
   "main": "dist/index.js",
   "scripts": {
     "start": "react-scripts start",
-    "watch": "npm run clear && nodemon -e ts,tsx -w ./src -x npm run build",
+    "watch": "nodemon -e ts,tsx -w ./src -x npm run build",
     "watch:dist": "npm run clear && nodemon -e ts,tsx -w ./src -x npm run dist",
     "link": "npm link react",
     "unlink": "npm unlink ract",
@@ -13,9 +13,6 @@
     "clear": "rm -fr ./dist",
     "dist": "npm run build && copyfiles -V ./dist/* ./dist/**/* ../3p5-mobile/node_modules/opium-nav",
     "publish": "npm run build && npm publish"
-  },
-  "dependencies": {
-    "query-string": "^7.0.1"
   },
   "devDependencies": {
     "@types/node": "^16.0.0",

@@ -1,27 +1,36 @@
 import React, { FC } from 'react'
-import { useNav } from './context'
-import { ParamsContext } from './context'
+import { useLocation, ParamsContext } from './context'
 import { setMatched, matched } from './router'
+import { parseQuery } from './utils'
+import { config } from './config'
 
 
 export interface PathProps {
   name?: string
   component: any
-  nav?: any,
+  nav?: any
+  forceRender?: boolean
 }
 
 export const Path: FC<PathProps> = (props) => {
   const {
     name,
     component,
-    nav = useNav(),
+    forceRender,
     ...rest
   } = props
+  const { path, history, cleanPath } = useLocation()
 
-  const newParams = { ...nav.params, ...rest }
+  const params = history.length ? (history.slice(-1)[0][1] || {}) : {}
+  if (path.includes('?')) {
+    const pathParams = parseQuery(path.split('?')[1]) || {}
+    Object.assign(params, pathParams)
+  }
+
+  const newParams = { ...params, ...rest }
   const normilizedName: any = []
-  const splitName = name?.replace(/^\//, '').replace(/\/$/, '')?.split('/') || []
-  const splitPath = nav.path?.replace(/^\//, '').replace(/\/$/, '')?.split('/') || []
+  const splitName = name?.replace(/^\//, '').replace(/\/$/, '')?.split(config.stackSeparator) || []
+  const splitPath = path?.replace(/^\//, '').replace(/\/$/, '')?.split(config.stackSeparator) || []
   // Raplace variables in name
   for (const index in splitName) {
     const namePart = splitName[index]
@@ -38,14 +47,11 @@ export const Path: FC<PathProps> = (props) => {
   const Component: any = component
   const render = (
     <ParamsContext.Provider value={newParams}>
-      <Component
-        {...newParams}
-        nav={nav}
-      />
+      <Component {...newParams} />
     </ParamsContext.Provider>
   )
 
-  const hasToRender = normilizedName.join('/') === nav.cleanPath
+  const hasToRender = normilizedName.join(config.stackSeparator) === cleanPath
   if (hasToRender) {
     setMatched()
     return render
@@ -53,6 +59,10 @@ export const Path: FC<PathProps> = (props) => {
 
   // 404 page
   if (!matched && !name) {
+    return render
+  }
+
+  if (forceRender) {
     return render
   }
 

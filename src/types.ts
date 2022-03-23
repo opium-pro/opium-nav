@@ -1,0 +1,1 @@
+export type HistoryItem = [path: string, params?: object]
