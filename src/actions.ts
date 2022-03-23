@@ -108,7 +108,7 @@ export function backInStack(stack: string) {
 }
 
 
-export function back(pop?: number, write = true) {
+export function back(pop = 1, write = true) {
   if (typeof pop !== 'number') {
     pop = 1
   }

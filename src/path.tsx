@@ -8,8 +8,8 @@ import { config } from './config'
 export interface PathProps {
   name?: string
   component: any
-  nav?: any
   forceRender?: boolean
+  parent?: boolean
 }
 
 export const Path: FC<PathProps> = (props) => {
@@ -17,6 +17,7 @@ export const Path: FC<PathProps> = (props) => {
     name,
     component,
     forceRender,
+    parent,
     ...rest
   } = props
   const { path, history, cleanPath } = useLocation()
@@ -50,8 +51,9 @@ export const Path: FC<PathProps> = (props) => {
       <Component {...newParams} />
     </ParamsContext.Provider>
   )
-
-  const hasToRender = normilizedName.join(config.stackSeparator) === cleanPath
+  
+  const fullName = normilizedName.join(config.stackSeparator)
+  const hasToRender = parent ? cleanPath.indexOf(fullName) === 0 : fullName === cleanPath
   if (hasToRender) {
     setMatched()
     return render

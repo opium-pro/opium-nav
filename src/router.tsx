@@ -5,6 +5,7 @@ import { config } from './config'
 import { getPathfromHistory } from './utils'
 import * as nav from './actions'
 import {useUpdate} from './utils'
+import {HistoryItem} from './types'
 
 
 export let matched: any
@@ -17,8 +18,6 @@ export function setMatched(arg?: string | false) {
     matched.push(arg)
   }
 }
-
-export type HistoryItem = [path: string, params?: object]
 
 
 export interface RouterProps {
@@ -85,7 +84,6 @@ export const Router: FC<RouterProps> = ({
       window.addEventListener?.('popstate', update)
       return () => window.removeEventListener?.('popstate', update)
     }
-    return
   }, [])
 
   // Update browser path

@@ -5,3 +5,7 @@ export const config = {
   localStorage: window?.localStorage,
   handleChange: (path, history, backHistory) => undefined,
 }
+
+if (config.isBrowser) {
+  config.defaultPath = window.location.pathname + window.location.search
+}
