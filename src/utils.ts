@@ -5,6 +5,7 @@ export function getPathfromHistory(history) {
   return !!history?.length && history.slice(-1)[0][0]
 }
 
+
 export function useUpdate() {
   const [value, setValue]: any = useState(0)
   return [
@@ -21,4 +22,12 @@ export function parseQuery(query: string) {
     result[varName] = varValue
   }
   return result
+}
+
+
+export function getPathFromUrl() {
+  const url = window?.location.toString()
+  const splitPath = url.split('://')[1]?.split('/')
+  splitPath.shift()
+  return `/${splitPath.join('/')}`
 }

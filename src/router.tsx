@@ -1,11 +1,11 @@
 import React, { useState, FC, useEffect } from 'react'
-import { Context, setSetState } from './context'
+import { PathContext, setSetState } from './context'
 import { localStorage } from './local-storage'
 import { config } from './config'
 import { getPathfromHistory } from './utils'
 import * as nav from './actions'
-import {useUpdate} from './utils'
-import {HistoryItem} from './types'
+import { useUpdate, getPathFromUrl } from './utils'
+import { HistoryItem } from './types'
 
 
 export let matched: any
@@ -62,7 +62,7 @@ export const Router: FC<RouterProps> = ({
 
       const newHistory = local.history || defaultHistory
       if (config.isBrowser) {
-        const browserPath = window.location.pathname + window.location.search
+        const browserPath = getPathFromUrl()
         if (browserPath !== newHistory.slice?.(-1)?.[0]?.[0]) {
           newHistory.push([browserPath, {}])
         }
@@ -90,7 +90,7 @@ export const Router: FC<RouterProps> = ({
   // Update browser path
   useEffect(() => {
     if (isReady && config.isBrowser) {
-      const browserPath = window.location.pathname + window.location.search
+      const browserPath = getPathFromUrl()
       if (browserPath !== path) {
         window.history.pushState(null, '', path)
       }
@@ -105,7 +105,7 @@ export const Router: FC<RouterProps> = ({
   // Back and Forward click
   useEffect(() => {
     if (updated && config.isBrowser) {
-      const newPath = window.location.pathname + window.location.search
+      const newPath = getPathFromUrl()
       if (newPath !== path) {
         nav.go(newPath)
       }
@@ -126,7 +126,7 @@ export const Router: FC<RouterProps> = ({
   if (!isReady) { return null }
 
   return (
-    <Context.Provider {...rest} value={{
+    <PathContext.Provider {...rest} value={{
       history,
       stackHistory,
       backHistory,

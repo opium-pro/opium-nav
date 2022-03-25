@@ -1,21 +1,21 @@
 import React, { FC, useRef } from 'react'
-import { useLocation } from './context'
+import { usePath } from './context'
 
 
 export type StackProps = {
-  cacheSize?: number
+  size?: number
 }
 
 
-export const Stack: FC<StackProps> = ({
-  cacheSize = 5,
+export const Cache: FC<StackProps> = ({
+  size = 5,
   children,
 }) => {
   const cached = useRef(new Map()).current
-  const { history, stackHistory, path } = useLocation()
+  const { history } = usePath()
 
-  history?.slice(-cacheSize).forEach(([path, params], index) => {
-    const isLast = index === (history.length >= cacheSize ? cacheSize - 1 : history.length - 1)
+  history?.slice(-size).forEach(([path, params], index) => {
+    const isLast = index === (history.length >= size ? size - 1 : history.length - 1)
 
     const childrenArray = React.Children.toArray(children)
     const match: any = childrenArray.find((child: any) => child.props.name === path)
@@ -44,6 +44,6 @@ export const Stack: FC<StackProps> = ({
     }
   })
 
-  const render = Array.from(cached.values()).slice(-cacheSize)
+  const render = Array.from(cached.values()).slice(-size)
   return <>{render}</>
 }

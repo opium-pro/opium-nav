@@ -1,3 +1,5 @@
+import { getPathFromUrl } from './utils'
+
 export const config = {
   isBrowser: !!(window?.location && window?.history),
   defaultPath: '/',
@@ -7,5 +9,5 @@ export const config = {
 }
 
 if (config.isBrowser) {
-  config.defaultPath = window.location.pathname + window.location.search
+  config.defaultPath = getPathFromUrl()
 }

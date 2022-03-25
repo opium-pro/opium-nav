@@ -1,5 +1,5 @@
-import { createContext, useContext } from 'react'
-import { UseParams, UseLocation } from './types'
+import { createContext, useContext as useReactContext } from 'react'
+import { ContextType } from './types'
 
 export let state
 export let setState
@@ -14,8 +14,5 @@ export function setSetState(func, value) {
   state = value
 }
 
-export const Context = createContext({} as UseLocation)
-export const useLocation = () => useContext(Context)
-
-export const ParamsContext = createContext({} as UseParams)
-export const useParams = () => useContext(ParamsContext)
+export const PathContext = createContext({} as ContextType)
+export const usePath = () => useReactContext(PathContext)

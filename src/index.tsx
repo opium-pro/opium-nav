@@ -1,7 +1,7 @@
 export * from './utils'
 export * from './router'
 export * from './path'
-export * from './stack'
+export * from './cache'
 export * from './context'
 export * from './config'
 export * as nav from './actions'

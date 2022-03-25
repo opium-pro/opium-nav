@@ -1,8 +1,9 @@
 import React, { FC } from 'react'
-import { useLocation, ParamsContext } from './context'
+import { PathContext, usePath } from './context'
 import { setMatched, matched } from './router'
 import { parseQuery } from './utils'
 import { config } from './config'
+import { Params } from './types'
 
 
 export interface PathProps {
@@ -18,42 +19,49 @@ export const Path: FC<PathProps> = (props) => {
     component,
     forceRender,
     parent,
-    ...rest
+    ...restParams
   } = props
-  const { path, history, cleanPath } = useLocation()
+  const context = usePath()
 
-  const params = history.length ? (history.slice(-1)[0][1] || {}) : {}
-  if (path.includes('?')) {
-    const pathParams = parseQuery(path.split('?')[1]) || {}
-    Object.assign(params, pathParams)
-  }
+  const calledParams: Params = history.length ? (context?.history.slice(-1)[0][1] || {}) : {}
+  const pathParams: Params = context?.path.includes('?')
+    ? parseQuery(context?.path.split('?')[1]) || {}
+    : {}
+  const nameParams: Params = {}
 
-  const newParams = { ...params, ...rest }
   const normilizedName: any = []
   const splitName = name?.replace(/^\//, '').replace(/\/$/, '')?.split(config.stackSeparator) || []
-  const splitPath = path?.replace(/^\//, '').replace(/\/$/, '')?.split(config.stackSeparator) || []
+  const splitPath = context?.path?.replace(/^\//, '').replace(/\/$/, '')?.split(config.stackSeparator) || []
   // Raplace variables in name
   for (const index in splitName) {
     const namePart = splitName[index]
     const pathPart = splitPath[index]
     if (namePart?.[0] === ':') {
       const varName = namePart.slice(1)
-      newParams[varName] = pathPart
+      nameParams[varName] = pathPart
       normilizedName.push(pathPart || namePart)
     } else {
       normilizedName.push(namePart)
     }
   }
 
+  const allParams: Params = { ...calledParams, ...pathParams, ...nameParams, ...restParams }
   const Component: any = component
   const render = (
-    <ParamsContext.Provider value={newParams}>
-      <Component {...newParams} />
-    </ParamsContext.Provider>
+    <PathContext.Provider value={{
+      ...context,
+      params: allParams,
+      pathParams,
+      calledParams,
+      nameParams,
+      restParams: restParams as Params,
+    }}>
+      <Component {...allParams} />
+    </PathContext.Provider>
   )
-  
+
   const fullName = normilizedName.join(config.stackSeparator)
-  const hasToRender = parent ? cleanPath.indexOf(fullName) === 0 : fullName === cleanPath
+  const hasToRender = parent ? context?.cleanPath.indexOf(fullName) === 0 : fullName === context?.cleanPath
   if (hasToRender) {
     setMatched()
     return render
