@@ -45,6 +45,11 @@ export const Path: FC<PathProps> = (props) => {
     }
   }
 
+  const fullName = normilizedName.join(config.stackSeparator)
+  const hasToRender = parent
+    ? fullName === context?.cleanPath || context?.cleanPath.indexOf(fullName + config.stackSeparator) === 0
+    : fullName === context?.cleanPath
+
   const allParams: Params = { ...calledParams, ...pathParams, ...nameParams, ...restParams }
   const Component: any = component
   const render = (
@@ -54,14 +59,13 @@ export const Path: FC<PathProps> = (props) => {
       pathParams,
       calledParams,
       nameParams,
+      hasToRender,
       restParams: restParams as Params,
     }}>
       <Component {...allParams} />
     </PathContext.Provider>
   )
 
-  const fullName = normilizedName.join(config.stackSeparator)
-  const hasToRender = parent ? context?.cleanPath.indexOf(fullName) === 0 : fullName === context?.cleanPath
   if (hasToRender) {
     setMatched()
     return render
