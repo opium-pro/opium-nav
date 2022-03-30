@@ -9,9 +9,9 @@ export type ContextType = {
   path: string
   cleanPath: string
   params?: Params
-  pathParams?: Params
+  queryParams?: Params
   calledParams?: Params
-  restParams?: Params
+  propsParams?: Params
   nameParams?: Params
   hasToRender?: boolean
 }

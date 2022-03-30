@@ -19,12 +19,12 @@ export const Path: FC<PathProps> = (props) => {
     component,
     forceRender,
     parent,
-    ...restParams
+    ...propsParams
   } = props
   const context = usePath()
 
   const calledParams: Params = history.length ? (context?.history.slice(-1)[0][1] || {}) : {}
-  const pathParams: Params = context?.path.includes('?')
+  const queryParams: Params = context?.path.includes('?')
     ? parseQuery(context?.path.split('?')[1]) || {}
     : {}
   const nameParams: Params = {}
@@ -50,17 +50,17 @@ export const Path: FC<PathProps> = (props) => {
     ? fullName === context?.cleanPath || context?.cleanPath.indexOf(fullName + config.stackSeparator) === 0
     : fullName === context?.cleanPath
 
-  const allParams: Params = { ...calledParams, ...pathParams, ...nameParams, ...restParams }
+  const allParams: Params = { ...calledParams, ...queryParams, ...nameParams, ...propsParams }
   const Component: any = component
   const render = (
     <PathContext.Provider value={{
       ...context,
       params: allParams,
-      pathParams,
+      queryParams,
       calledParams,
       nameParams,
       hasToRender,
-      restParams: restParams as Params,
+      propsParams: propsParams as Params,
     }}>
       <Component {...allParams} />
     </PathContext.Provider>
