@@ -121,6 +121,8 @@ export function back(pop = 1, write = true) {
       if (write) {
         newState.backHistory = [...state.backHistory, ...popped.reverse()]
       }
+    } else if (config.isBrowser) {
+      window.history?.back?.()
     }
     return newState
   })
