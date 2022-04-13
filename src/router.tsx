@@ -114,7 +114,7 @@ export const Router: FC<RouterProps> = ({
 
   // Track changes
   useEffect(() => {
-    config.handleChange?.(path, history, backHistory)
+    config.onSwitch?.(path, history, backHistory)
   }, [history, backHistory])
 
   useEffect(() => {
@@ -125,12 +125,15 @@ export const Router: FC<RouterProps> = ({
 
   if (!isReady) { return null }
 
+  const splitPath = path.split(config.stackSeparator)
+
   return (
     <PathContext.Provider {...rest} value={{
       history,
       stackHistory,
       backHistory,
       path,
+      splitPath,
       cleanPath,
     }} />
   )

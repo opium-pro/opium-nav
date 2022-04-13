@@ -7,6 +7,7 @@ export type ContextType = {
   stackHistory: HistoryItem[]
   backHistory: HistoryItem[]
   path: string
+  splitPath: string[]
   cleanPath: string
   params?: Params
   queryParams?: Params
