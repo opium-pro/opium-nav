@@ -74,7 +74,7 @@ export function replace(newPath: string, params?: object) {
 }
 
 
-export function backInStack(stack: string) {
+export function backInStack(stack?: string) {
   setState(state => {
     const { history } = state
     const path = getPathfromHistory(history)
@@ -83,11 +83,11 @@ export function backInStack(stack: string) {
       const splitPath = path.split(config.stackSeparator)
       stack = splitPath[0] || `/${splitPath[1]}`
     }
-    const stackHistory = getStack(stack, history)
+    const stackHistory = getStack(stack as string, history)
     const last = stackHistory.slice(-1)[0]
     function findPrev(index = stackHistory.length - 1): HistoryItem {
       if (index < 0) {
-        return [stack, {}]
+        return [stack as string, {}]
       }
       if (stackHistory[index][0] !== last[0]) {
         return stackHistory[index]
