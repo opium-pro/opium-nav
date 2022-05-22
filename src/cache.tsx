@@ -2,12 +2,12 @@ import React, { FC, useRef } from 'react'
 import { usePath } from './context'
 
 
-export type StackProps = {
+export type CacheProps = {
   size?: number
 }
 
 
-export const Cache: FC<StackProps> = ({
+export const Cache: FC<CacheProps> = ({
   size = 5,
   children,
 }) => {
