@@ -14,6 +14,8 @@ export const Cache: FC<CacheProps> = ({
   const cached = useRef(new Map()).current
   const { history } = usePath()
 
+  const render = new Map()
+
   history?.slice(-size).forEach(([path, params], index) => {
     const isLast = index === (history.length >= size ? size - 1 : history.length - 1)
 
@@ -32,18 +34,23 @@ export const Cache: FC<CacheProps> = ({
     // Удаляем последний элемент, чтбы он перерендерился
     if (isLast) { cached.delete(path) }
 
-    if (cached.has(path)) {
-      const CachedComponent = cached.get(path)
+    let CachedComponent = cached.get(path)
+
+    if (CachedComponent) {
       cached.delete(path)
-      cached.set(path, CachedComponent)
     } else {
-      cached.set(path, <Component
+      CachedComponent = <Component
         {...params}
         key={path}
-      />)
+      />
     }
-  })
+    cached.set(path, CachedComponent)
 
-  const render = Array.from(cached.values()).slice(-size)
-  return <>{render}</>
+    if (render.has(path)) {
+      render.delete(path)
+    }
+    render.set(path, CachedComponent)
+  })
+  
+  return <>{Array.from(render.values()).slice(-size)}</>
 }
