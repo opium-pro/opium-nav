@@ -2,9 +2,8 @@ import React, { useState, FC, useEffect } from 'react'
 import { PathContext, setSetState } from './context'
 import { localStorage } from './local-storage'
 import { config } from './config'
-import { getPathfromHistory } from './utils'
+import { getPathfromHistory, clearPath, useUpdate, getPathFromUrl } from './utils'
 import * as nav from './actions'
-import { useUpdate, getPathFromUrl } from './utils'
 import { HistoryItem } from './types'
 
 
@@ -43,7 +42,7 @@ export const Router: FC<RouterProps> = ({
   setSetState(setState, state)
   const { history, backHistory } = state
   const path = getPathfromHistory(history) || config.defaultPath
-  const cleanPath = path.split('?')[0]?.replace(/^\//, '').replace(/\/$/, '')
+  const cleanPath = clearPath(path)
 
   useEffect(() => {
     if (!history.length) {

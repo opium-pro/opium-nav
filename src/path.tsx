@@ -2,8 +2,8 @@ import React, { FC } from 'react'
 import { PathContext, usePath } from './context'
 import { setMatched, matched } from './router'
 import { parseQuery } from './utils'
-import { config } from './config'
 import { Params } from './types'
+import { match } from './match'
 
 
 export interface PathProps {
@@ -27,28 +27,7 @@ export const Path: FC<PathProps> = (props) => {
   const queryParams: Params = context?.path.includes('?')
     ? parseQuery(context?.path.split('?')[1]) || {}
     : {}
-  const nameParams: Params = {}
-
-  const normilizedName: any = []
-  const splitName = name?.replace(/^\//, '').replace(/\/$/, '')?.split(config.stackSeparator) || []
-  const splitPath = context?.path?.replace(/^\//, '').replace(/\/$/, '')?.split(config.stackSeparator) || []
-  // Raplace variables in name
-  for (const index in splitName) {
-    const namePart = splitName[index]
-    const pathPart = splitPath[index]
-    if (namePart?.[0] === ':') {
-      const varName = namePart.slice(1)
-      nameParams[varName] = pathPart
-      normilizedName.push(pathPart || namePart)
-    } else {
-      normilizedName.push(namePart)
-    }
-  }
-
-  const fullName = normilizedName.join(config.stackSeparator)
-  const hasToRender = parent
-    ? fullName === context?.cleanPath || context?.cleanPath.indexOf(fullName + config.stackSeparator) === 0
-    : fullName === context?.cleanPath
+  const [hasToRender, nameParams] = match(name, context.path, parent)
 
   const allParams: Params = { ...calledParams, ...queryParams, ...nameParams, ...propsParams }
   const Component: any = component

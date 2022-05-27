@@ -1,5 +1,7 @@
 import React, { FC, useRef } from 'react'
 import { usePath } from './context'
+import { match as hasMatch } from './match'
+import { PathContext } from './context'
 
 
 export type CacheProps = {
@@ -12,7 +14,7 @@ export const Cache: FC<CacheProps> = ({
   children,
 }) => {
   const cached = useRef(new Map()).current
-  const { history } = usePath()
+  const { history, path: currentPath } = usePath()
 
   const render = new Map()
 
@@ -20,7 +22,7 @@ export const Cache: FC<CacheProps> = ({
     const isLast = index === (history.length >= size ? size - 1 : history.length - 1)
 
     const childrenArray = React.Children.toArray(children)
-    const match: any = childrenArray.find((child: any) => child.props.name === path)
+    const match: any = childrenArray.find((child: any) => hasMatch(child.props.name, currentPath, child.props.parent)?.[0])
     let Component = match?.props?.component
 
     // 404
@@ -39,10 +41,11 @@ export const Cache: FC<CacheProps> = ({
     if (CachedComponent) {
       cached.delete(path)
     } else {
-      CachedComponent = <Component
-        {...params}
-        key={path}
-      />
+      CachedComponent =
+        <Component
+          key={path}
+          {...params}
+        />
     }
     cached.set(path, CachedComponent)
 
@@ -51,6 +54,6 @@ export const Cache: FC<CacheProps> = ({
     }
     render.set(path, CachedComponent)
   })
-  
+
   return <>{Array.from(render.values()).slice(-size)}</>
 }

@@ -31,3 +31,8 @@ export function getPathFromUrl() {
   splitPath.shift()
   return `/${splitPath.join('/')}`
 }
+
+
+export function clearPath(path: string = ''): string {
+  return path?.split('?')[0]?.replace(/^\//, '').replace(/\/$/, '')
+}
