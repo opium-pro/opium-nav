@@ -1,4 +1,3 @@
-import { usePath } from './context'
 import { config } from './config'
 import { Params } from './types'
 import { clearPath } from './utils'

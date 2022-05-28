@@ -5,7 +5,7 @@ export const config = {
   defaultPath: '/',
   stackSeparator: '/',
   localStorage: window?.localStorage,
-  onSwitch: (path, history, backHistory) => undefined,
+  onSwitch: (path, history, backHistory) => undefined as any,
 }
 
 if (config.isBrowser) {
