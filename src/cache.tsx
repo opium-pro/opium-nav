@@ -1,20 +1,26 @@
 import React, { FC, useRef } from 'react'
 import { usePath } from './context'
 import { match as hasMatch } from './match'
-import { PathContext } from './context'
+import { getStack } from './actions'
 
 
 export type CacheProps = {
   size?: number
+  stack?: boolean
 }
 
 
 export const Cache: FC<CacheProps> = ({
   size = 5,
   children,
+  stack,
 }) => {
   const cached = useRef(new Map()).current
-  const { history, path: currentPath } = usePath()
+  let { history, path: currentPath } = usePath()
+
+  if (stack) {
+    history = getStack(currentPath, history)
+  }
 
   const render = new Map()
 
