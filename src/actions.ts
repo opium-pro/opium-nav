@@ -8,12 +8,21 @@ export { getState }
 
 
 export function isStack(stackName: string, path = getPathfromHistory(getState().history)) {
+  if (stackName.indexOf(config.stackSeparator) === 0) {
+    stackName = stackName.slice(config.stackSeparator.length)
+  }
+  if (path.indexOf(config.stackSeparator) === 0) {
+    path = path.slice(config.stackSeparator.length)
+  }
   return path.indexOf(stackName) === 0
 }
 
 
 export function getStack(path: string, history): HistoryItem[] {
-  const stackhistory = history?.filter(([item]) => isStack(path.split(config.stackSeparator)[0], item))
+  const splitPath = path.split(config.stackSeparator)
+  const stack = splitPath[0] || splitPath[1]
+  const stackhistory = history?.filter(([item]) => isStack(stack, item))
+
   let prevItem = []
   const result = stackhistory.filter(item => {
     if ((item[0] === prevItem[0]) && (JSON.stringify(item[1]) === JSON.stringify(prevItem[1]))) {
@@ -78,12 +87,7 @@ export function backInStack(stack?: string) {
   setState(state => {
     const { history } = state
     const path = getPathfromHistory(history)
-
-    if (typeof stack !== 'string') {
-      const splitPath = path.split(config.stackSeparator)
-      stack = splitPath[0] || `/${splitPath[1]}`
-    }
-    const stackHistory = getStack(stack as string, history)
+    const stackHistory = getStack(path, history)
     const last = stackHistory.slice(-1)[0]
     function findPrev(index = stackHistory.length - 1): HistoryItem {
       if (index < 0) {
