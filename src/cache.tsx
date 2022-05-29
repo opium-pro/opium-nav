@@ -7,12 +7,14 @@ import { getStack } from './actions'
 export type CacheProps = {
   size?: number
   stack?: boolean
+  keep?: string[]
 }
 
 
 export const Cache: FC<CacheProps> = ({
   size = 3,
   children,
+  keep = [],
   stack,
 }) => {
   const cached = useRef(new Map()).current
@@ -52,7 +54,7 @@ export const Cache: FC<CacheProps> = ({
     }
   })
 
-  const toRender = new Set()
+  const toRender = new Set(keep)
   history.slice(-size).forEach(([path]) => {
     if (toRender.has(path)) {
       toRender.delete(path)

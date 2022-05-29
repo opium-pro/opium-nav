@@ -148,10 +148,10 @@ export function forward() {
 }
 
 
-export function reset(initialPath?: string) {
+export function reset(initialPath?: string, params: any = {}) {
   setState(state => ({
     ...state,
-    history: [[initialPath || config.defaultPath, {}]],
+    history: [[initialPath || config.defaultPath, params]],
   }))
 }
 
