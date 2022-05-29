@@ -11,7 +11,7 @@ export type CacheProps = {
 
 
 export const Cache: FC<CacheProps> = ({
-  size = 5,
+  size = 3,
   children,
   stack,
 }) => {
@@ -21,8 +21,6 @@ export const Cache: FC<CacheProps> = ({
   if (stack) {
     history = getStack(currentPath, history)
   }
-
-  const render = new Map()
 
   history?.slice(-size).forEach(([path, params], index) => {
     const isLast = index === (history.length >= size ? size - 1 : history.length - 1)
@@ -45,21 +43,23 @@ export const Cache: FC<CacheProps> = ({
     let CachedComponent = cached.get(path)
 
     if (CachedComponent) {
-      cached.delete(path)
+      cached.set(path, CachedComponent)
     } else {
-      CachedComponent =
-        <Component
-          key={path}
-          {...params}
-        />
+      cached.set(path, <Component
+        key={path}
+        {...params}
+      />)
     }
-    cached.set(path, CachedComponent)
-
-    if (render.has(path)) {
-      render.delete(path)
-    }
-    render.set(path, CachedComponent)
   })
 
-  return <>{Array.from(render.values()).slice(-size)}</>
+  const toRender = new Set()
+  history.slice(-size).forEach(([path]) => {
+    if (toRender.has(path)) {
+      toRender.delete(path)
+    }
+    toRender.add(path)
+  })
+
+  const render = Array.from(toRender).map((path) => cached.get(path))
+  return <>{render}</>
 }
