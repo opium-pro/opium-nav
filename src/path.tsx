@@ -1,4 +1,4 @@
-import React, { FC } from 'react'
+import React, { FC, PropsWithChildren } from 'react'
 import { PathContext, usePath } from './context'
 import { setMatched, matched } from './router'
 import { parseQuery } from './utils'
@@ -6,12 +6,12 @@ import { Params } from './types'
 import { match } from './match'
 
 
-export interface PathProps {
+export type PathProps = PropsWithChildren<{
   name?: string
   component: any
   forceRender?: boolean
   parent?: boolean
-}
+}>
 
 export const Path: FC<PathProps> = (props) => {
   const {

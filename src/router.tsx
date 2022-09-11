@@ -1,4 +1,4 @@
-import React, { useState, FC, useEffect } from 'react'
+import React, { useState, FC, useEffect, PropsWithChildren } from 'react'
 import { PathContext, setSetState } from './context'
 import { localStorage } from './local-storage'
 import { config } from './config'
@@ -19,12 +19,12 @@ export function setMatched(arg?: string | false) {
 }
 
 
-export interface RouterProps {
+export type RouterProps = PropsWithChildren<{
   history?: HistoryItem[]
   backHistory?: HistoryItem[]
   saveState?: boolean
   browser?: boolean
-}
+}>
 
 
 export const Router: FC<RouterProps> = ({

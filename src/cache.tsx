@@ -1,14 +1,14 @@
-import React, { FC, useRef } from 'react'
+import React, { FC, useRef, PropsWithChildren } from 'react'
 import { usePath } from './context'
 import { match as hasMatch } from './match'
 import { getStack } from './actions'
 
 
-export type CacheProps = {
+export type CacheProps = PropsWithChildren<{
   size?: number
   stack?: boolean
   keep?: string[]
-}
+}>
 
 
 export const Cache: FC<CacheProps> = ({

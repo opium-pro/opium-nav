@@ -1,6 +1,6 @@
 {
   "name": "opium-nav",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Lightweight router for React and React Native apps",
   "main": "dist/index.js",
   "scripts": {
